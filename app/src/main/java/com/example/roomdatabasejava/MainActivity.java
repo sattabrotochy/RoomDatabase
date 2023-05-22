@@ -3,16 +3,21 @@ package com.example.roomdatabasejava;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
 
     EditText editTxtFirstName, editTxtLastName;
     Button submitBtn;
-    RoomHandler roomHandler;
+
+    DataBaseHelper dataBaseHelper;
+    ArrayList<Expense> arrayList;
     int id =0;
 
     @Override
@@ -23,31 +28,21 @@ public class MainActivity extends AppCompatActivity {
         editTxtFirstName = findViewById(R.id.editTxtFirstName);
         editTxtLastName = findViewById(R.id.editTextLastName);
         submitBtn = findViewById(R.id.submit_btn);
+        arrayList=new ArrayList<>();
 
-
+        dataBaseHelper=DataBaseHelper.getDB(this);
         submitBtn.setOnClickListener(view -> {
             String firstName = editTxtFirstName.getText().toString();
             String lastName = editTxtLastName.getText().toString();
 
-            id++;
-            // Create a User object with the entered data
-            User user = new User(id, firstName, lastName);
+            dataBaseHelper.expenseDao().addTx(new Expense(firstName,lastName));
 
-            // Create RoomHandler instance passing the application context and User object
-            roomHandler = RoomHandler.getInstance(getApplicationContext(), user);
+            arrayList= (ArrayList<Expense>) dataBaseHelper.expenseDao().getAllExpense();
+            for (int i=0;i<arrayList.size();i++){
+                Log.d("TAG", " firstName"+arrayList.get(i).getFirstName() +"lastName"+arrayList.get(i).getLastName());
+            }
 
-            // Start the database logic in a separate thread
-            roomHandler.start();
         });
     }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
 
-        // Clean up resources if needed
-        if (roomHandler != null) {
-            roomHandler.interrupt();
-            roomHandler = null;
-        }
-    }
 }
